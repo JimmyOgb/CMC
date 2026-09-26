@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #080B1A;
+    color: #F1F5F9;
+    font-family: 'Inter', sans-serif;
+  }
+
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbars for high-density financial terminal look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0C1024;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E2548;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3861FB;
+}
+
+.terminal-card {
+  background: linear-gradient(180deg, #12172E 0%, #0D1226 100%);
+  border: 1px solid #1E2548;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.terminal-card-hover {
+  transition: all 0.2s ease-in-out;
+}
+.terminal-card-hover:hover {
+  border-color: #3861FB;
+  transform: translateY(-1px);
+}
