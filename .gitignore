@@ -15,6 +15,17 @@ dist-ssr
 # Vercel
 .vercel
 
+# Media & Demo Artifacts
+*.mp4
+*.mp3
+*.wav
+audio_segments/
+audio_segments_v2/
+audio_temp/
+video_frames/
+*.py
+*.ps1
+
 # Editor & OS files
 .DS_Store
 *.suo
