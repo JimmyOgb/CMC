@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Play, SkipForward, Volume2, VolumeX, Sparkles, ChevronRight, Activity, Terminal, ArrowRight, Zap, Globe, Layers } from 'lucide-react';
+import { ShieldCheck, Play, Pause, SkipForward, Volume2, VolumeX, Sparkles, ChevronRight, Activity, Terminal, ArrowRight, Zap, Globe, Layers } from 'lucide-react';
 
 interface CinematicIntroProps {
   onComplete: () => void;
@@ -165,8 +165,12 @@ const ACTS: StoryAct[] = [
   },
 ];
 
+const ACT_DURATION_MS = 5000;
+
 export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) => {
   const [currentAct, setCurrentAct] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isWarping, setIsWarping] = useState(false);
   const [glitchText, setGlitchText] = useState(false);
@@ -303,36 +307,50 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
     };
   }, []);
 
-  // Act advancement timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentAct((prev) => {
-        if (prev < ACTS.length - 1) {
-          sfx.playBlip(750 + prev * 120, 'sine');
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 6500);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleNextAct = () => {
-    sfx.playBlip(900, 'sine');
-    if (currentAct < ACTS.length - 1) {
-      setCurrentAct(currentAct + 1);
-    } else {
-      handleLaunchTerminal();
-    }
-  };
-
   const handleLaunchTerminal = () => {
     sfx.playWarp();
     setIsWarping(true);
     setTimeout(() => {
       onComplete();
     }, 700);
+  };
+
+  // Automatic progression timer: moves every 4.8 seconds automatically through acts and then into terminal
+  useEffect(() => {
+    if (!isAutoPlaying || isWarping) return;
+
+    const intervalTime = 50;
+    const increment = (intervalTime / ACT_DURATION_MS) * 100;
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev + increment >= 100) {
+          if (currentAct < ACTS.length - 1) {
+            sfx.playBlip(750 + (currentAct + 1) * 120, 'sine');
+            setCurrentAct((a) => a + 1);
+            return 0;
+          } else {
+            // Act 4 completed: automatically launch terminal!
+            clearInterval(timer);
+            handleLaunchTerminal();
+            return 100;
+          }
+        }
+        return prev + increment;
+      });
+    }, intervalTime);
+
+    return () => clearInterval(timer);
+  }, [currentAct, isAutoPlaying, isWarping]);
+
+  const handleNextAct = () => {
+    sfx.playBlip(900, 'sine');
+    setProgress(0);
+    if (currentAct < ACTS.length - 1) {
+      setCurrentAct((a) => a + 1);
+    } else {
+      handleLaunchTerminal();
+    }
   };
 
   const toggleSound = () => {
@@ -389,8 +407,21 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
           </span>
         </div>
 
-        {/* Right: Audio Toggle & Skip */}
-        <div className="flex items-center space-x-3">
+        {/* Right: Audio Toggle, Auto-Play Toggle & Skip */}
+        <div className="flex items-center space-x-2.5">
+          <button
+            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            className={`p-2 rounded-lg border text-xs flex items-center space-x-1.5 font-mono transition-all ${
+              isAutoPlaying
+                ? 'bg-[#3861FB]/20 border-[#3861FB]/50 text-[#00F0FF]'
+                : 'bg-[#12172E] border-[#1E2548] text-slate-400 hover:text-white'
+            }`}
+            title="Toggle Automatic Sequence Playback"
+          >
+            {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <span className="hidden sm:inline">{isAutoPlaying ? 'AUTO ON' : 'PAUSED'}</span>
+          </button>
+
           <button
             onClick={toggleSound}
             className="p-2 rounded-lg bg-[#12172E] border border-[#1E2548] text-slate-300 hover:text-white transition-all text-xs flex items-center space-x-1.5 font-mono"
@@ -425,6 +456,18 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
             className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
             style={{ backgroundColor: act.themeColor }}
           />
+
+          {/* Animated Auto-Advance Progress Line */}
+          <div className="w-full bg-[#1E2548]/60 h-1.5 rounded-full overflow-hidden mb-6 relative">
+            <div
+              className="h-full transition-all duration-75 ease-linear rounded-full"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: act.themeColor,
+                boxShadow: `0 0 12px ${act.themeColor}`,
+              }}
+            />
+          </div>
 
           {/* Act Badge & Tag */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
@@ -513,6 +556,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
               onClick={() => {
                 sfx.playBlip(700 + idx * 100);
                 setCurrentAct(idx);
+                setProgress(0);
               }}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 currentAct === idx
