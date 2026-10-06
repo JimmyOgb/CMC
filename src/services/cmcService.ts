@@ -1,19 +1,24 @@
 import { CmcResponse, RwaAsset, RwaQuoteItem, RwaIssuer, RwaMarketPair, GlobalMarketMetrics } from '../types/cmc';
 
+export const DEFAULT_CMC_PRO_API_KEY = '931b2ea5568e4bde86e9d94d85e8ae3b';
 const KEY_STORAGE_NAME = 'cmc_pro_api_key';
 const ENV_STORAGE_NAME = 'cmc_environment';
 
 export class CmcService {
-  private static apiKey: string = localStorage.getItem(KEY_STORAGE_NAME) || '';
+  private static apiKey: string = localStorage.getItem(KEY_STORAGE_NAME) || DEFAULT_CMC_PRO_API_KEY;
   private static environment: string = localStorage.getItem(ENV_STORAGE_NAME) || 'production';
 
   public static getApiKey(): string {
-    return this.apiKey;
+    return this.apiKey || DEFAULT_CMC_PRO_API_KEY;
   }
 
   public static setApiKey(key: string): void {
     this.apiKey = key.trim();
-    localStorage.setItem(KEY_STORAGE_NAME, this.apiKey);
+    if (this.apiKey) {
+      localStorage.setItem(KEY_STORAGE_NAME, this.apiKey);
+    } else {
+      localStorage.removeItem(KEY_STORAGE_NAME);
+    }
   }
 
   public static getEnvironment(): string {
@@ -26,12 +31,13 @@ export class CmcService {
   }
 
   private static getHeaders(): Record<string, string> {
+    const key = this.getApiKey();
     const headers: Record<string, string> = {
       'Accept': 'application/json',
       'x-cmc-environment': this.environment,
     };
-    if (this.apiKey) {
-      headers['x-cmc-pro-api-key'] = this.apiKey;
+    if (key) {
+      headers['x-cmc-pro-api-key'] = key;
     }
     return headers;
   }
@@ -134,7 +140,8 @@ export class CmcService {
    * Validate API Key status
    */
   public static async validateKey(): Promise<{ valid: boolean; plan?: any; usage?: any; message?: string }> {
-    if (!this.apiKey) {
+    const key = this.getApiKey();
+    if (!key) {
       return { valid: false, message: 'No API key entered' };
     }
     try {

@@ -31,12 +31,14 @@ function getTargetBaseUrl(_env?: string): string {
   return 'https://pro-api.coinmarketcap.com';
 }
 
+export const DEFAULT_CMC_PRO_API_KEY = '931b2ea5568e4bde86e9d94d85e8ae3b';
+
 // Proxy all /api/cmc/* requests directly to CoinMarketCap API
 app.all('/api/cmc/*', async (req: Request, res: Response) => {
   const startTime = Date.now();
   const endpointPath = req.params[0]; // e.g. "v5/real-world-assets/map" or "v1/cryptocurrency/quotes/latest"
   const cmcEnv = (req.headers['x-cmc-environment'] as string) || process.env.CMC_ENVIRONMENT || 'production';
-  const apiKey = (req.headers['x-cmc-pro-api-key'] as string) || process.env.CMC_PRO_API_KEY || '';
+  const apiKey = (req.headers['x-cmc-pro-api-key'] as string) || process.env.CMC_PRO_API_KEY || DEFAULT_CMC_PRO_API_KEY;
 
   const baseUrl = getTargetBaseUrl(cmcEnv);
   
@@ -138,7 +140,7 @@ app.get('/api/telemetry', (_req: Request, res: Response) => {
 
 // Validate API Key endpoint
 app.get('/api/validate-key', async (req: Request, res: Response) => {
-  const apiKey = (req.headers['x-cmc-pro-api-key'] as string) || process.env.CMC_PRO_API_KEY || '';
+  const apiKey = (req.headers['x-cmc-pro-api-key'] as string) || process.env.CMC_PRO_API_KEY || DEFAULT_CMC_PRO_API_KEY;
   const cmcEnv = (req.headers['x-cmc-environment'] as string) || 'production';
 
   if (!apiKey) {

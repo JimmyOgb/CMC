@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Key, CheckCircle2, AlertCircle, RefreshCw, ExternalLink, ShieldCheck } from 'lucide-react';
-import { CmcService } from '../services/cmcService';
+import { CmcService, DEFAULT_CMC_PRO_API_KEY } from '../services/cmcService';
 
 interface KeyModalProps {
   isOpen: boolean;
@@ -89,10 +89,10 @@ export const KeyModal: React.FC<KeyModalProps> = ({ isOpen, onClose, onKeySaved 
           <div className="bg-[#080B1A] border border-[#1E2548] rounded-xl p-3.5 text-xs text-slate-300">
             <p className="font-semibold text-white mb-1 flex items-center">
               <ShieldCheck className="w-4 h-4 text-[#16C784] mr-1.5" />
-              Startup-Tier Plan Eligible
+              Autonomous CMC Pro Integration Active
             </p>
-            All hackathon participants receive a <span className="text-[#3861FB] font-medium">Free Startup-tier upgrade</span> on their CMC account during the hackathon. 
-            Your key stays local in your browser and is forwarded solely to your local gateway server.
+            Connected autonomously to CoinMarketCap Pro API with key: <code className="text-[#00F0FF] font-mono select-all break-all">{DEFAULT_CMC_PRO_API_KEY}</code>. 
+            No manual login is required. You may test connection or configure a custom API key below.
           </div>
 
           <div>
@@ -142,9 +142,23 @@ export const KeyModal: React.FC<KeyModalProps> = ({ isOpen, onClose, onKeySaved 
           {/* Quick action option */}
           <div className="flex items-center justify-between pt-2 border-t border-[#1E2548] text-xs">
             <div className="text-slate-400">
-              Need a key?
+              Autonomous Pro Key Active
             </div>
-            <div className="space-x-2">
+            <div className="space-x-2 flex items-center">
+              {apiKey !== DEFAULT_CMC_PRO_API_KEY && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setApiKey(DEFAULT_CMC_PRO_API_KEY);
+                    CmcService.setApiKey(DEFAULT_CMC_PRO_API_KEY);
+                    onKeySaved(DEFAULT_CMC_PRO_API_KEY);
+                    setValidationResult(null);
+                  }}
+                  className="text-xs px-2.5 py-1 rounded bg-[#3861FB]/20 hover:bg-[#3861FB]/30 text-[#00F0FF] border border-[#3861FB]/40 font-medium transition-colors"
+                >
+                  Reset Default Key
+                </button>
+              )}
               {apiKey && (
                 <button
                   type="button"
@@ -160,7 +174,7 @@ export const KeyModal: React.FC<KeyModalProps> = ({ isOpen, onClose, onKeySaved 
                 rel="noreferrer"
                 className="inline-flex items-center text-xs text-[#3861FB] hover:underline"
               >
-                Get Free Key <ExternalLink className="w-3 h-3 ml-1" />
+                CMC Portal <ExternalLink className="w-3 h-3 ml-1" />
               </a>
             </div>
           </div>

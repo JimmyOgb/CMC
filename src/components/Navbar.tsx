@@ -154,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Key className="w-3.5 h-3.5" />
-              <span>{hasKey ? 'CMC Pro Key Active' : 'Enter CMC API Key'}</span>
+              <span>{hasKey ? 'Autonomous Pro Active' : 'Enter CMC API Key'}</span>
             </button>
           </div>
         </div>
